@@ -1,6 +1,7 @@
 import numpy as np
 import cv2 as cv
 
+# https://docs.opencv.org/4.x/dc/d4d/tutorial_py_table_of_contents_gui.html
 
 ######### Live Capture ###########
 cap = cv.VideoCapture(0)

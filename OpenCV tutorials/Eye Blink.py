@@ -5,6 +5,7 @@
 # Importing the required dependencies 
 import cv2 # for video rendering 
 import dlib # for face and landmark detection 
+
 import imutils 
 # for calculating dist b/w the eye landmarks 
 from scipy.spatial import distance as dist 

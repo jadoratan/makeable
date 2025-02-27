@@ -38,19 +38,19 @@ def calculate_EAR(eye):
 	return EAR 
 
 # Variables 
-BLINK_THRESH = 0.45
-SUCC_FRAME = 2 # for preventing false detections from slight eye movement or noise
+BLINK_THRESH = 0.35
+SUCC_FRAME = 1 # for preventing false detections from slight eye movement or noise
 
 left_count_frame = 0 # how many consecutive frames left eye is unblinking
 right_count_frame = 0 # how many consecutive frames right eye is unblinking
 
-BLINK_DISPLAY_FRAMES = 20 # Number of frames to display message
+BLINK_DISPLAY_FRAMES = 15 # Number of frames to display message
 left_blink_counter = 0 # Counter for displaying blink message
 
 # right_blink_display_frames = 10 # Number of frames to display message
 right_blink_counter = 0 # Counter for displaying blink message
 
-# Eye landmarks 
+# Eye landmarks
 (L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"] 
 (R_start, R_end) = face_utils.FACIAL_LANDMARKS_IDXS['right_eye'] 
 
@@ -73,6 +73,7 @@ while 1:
 	else: 
 		_, frame = cam.read() 
 		frame = imutils.resize(frame, width=640) 
+		# frame = cv2.flip(frame, 1)
 
 		# converting frame to gray scale to 
 		# pass to detector 
@@ -91,26 +92,30 @@ while 1:
 
 			# parsing the landmarks list to extract 
 			# lefteye and righteye landmarks--# 
-			lefteye = shape[L_start: L_end] 
-			righteye = shape[R_start:R_end] 
+			# they're switched because the mirroring messes it up #
+			righteye = shape[L_start: L_end]
+			lefteye = shape[R_start:R_end] 
 
 			# Calculate the EAR (Eye Aspect Ratio)
 			left_EAR = calculate_EAR(lefteye) 
 			right_EAR = calculate_EAR(righteye) 
 
 			# Just left eye EAR
-			if (left_EAR < BLINK_THRESH): # if left eye is unblinking
+			if (left_EAR < BLINK_THRESH): # if left eye is blinking
 				left_count_frame += 1 # incrementing the frame count for left eye
 			else: 
 				if left_count_frame >= SUCC_FRAME: 
 					left_blink_counter = BLINK_DISPLAY_FRAMES
 					print("Left eye blink detected")
-				else: 
-					left_count_frame = 0
-			
+					left_count_frame -= 1
+				else:
+					print(f"Left EAR: {left_EAR}")
+					
+			# frame = cv2.flip(frame, 1)
+
 			if left_blink_counter > 0:
 				cv2.putText(frame, 'Left Eye Blink Detected', (30, 30), 
-								cv2.FONT_HERSHEY_PLAIN, 1, (0, 200, 0), 1) 
+								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
 				left_blink_counter -= 1
 
 			# Just right eye EAR
@@ -120,12 +125,13 @@ while 1:
 				if right_count_frame >= SUCC_FRAME: 
 					right_blink_counter = BLINK_DISPLAY_FRAMES
 					print("Right eye blink detected")
-				else: 
-					right_count_frame = 0
+					right_count_frame -= 1
+				else:
+					print(f"Right EAR: {right_EAR}")
 			
 			if right_blink_counter > 0:
-				cv2.putText(frame, 'Right Eye Blink Detected', (30, 230), 
-								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
+				cv2.putText(frame, 'Right Eye Blink Detected', (30, 130), 
+								cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
 				right_blink_counter -= 1
 
 			# # Avg of left and right eye EAR 
@@ -138,6 +144,7 @@ while 1:
 			# 					cv2.FONT_HERSHEY_DUPLEX, 1, (0, 200, 0), 1) 
 			# 	else: 
 			# 		left_count_frame = 0
+
 
 		cv2.imshow("Video", frame) 
 		if cv2.waitKey(5) & 0xFF == ord('q'): 

@@ -38,18 +38,22 @@ def calculate_EAR(eye):
 	return EAR 
 
 # Variables 
-LEFT_ONLY_BLINK_THRESH = 0.32
-RIGHT_ONLY_BLINK_THRESH = 0.35
-SUCC_FRAME = 1 # for preventing false detections from slight eye movement or noise
+LEFT_BLINK_THRESH = 0.35 # 0.32
+RIGHT_BLINK_THRESH = 0.35
+SUCC_FRAME = 3 # for preventing false detections from slight eye movement or noise
 
 left_count_frame = 0 # how many consecutive frames left eye is unblinking
 right_count_frame = 0 # how many consecutive frames right eye is unblinking
+both_count_frame = 0
 
 BLINK_DISPLAY_FRAMES = 15 # Number of frames to display message
 left_blink_counter = 0 # Counter for displaying blink message
-
-# right_blink_display_frames = 10 # Number of frames to display message
 right_blink_counter = 0 # Counter for displaying blink message
+both_blink_counter = 0 # Counter for displaying blink message
+long_blink_counter = 0 # for counting consecutive long blinks
+
+TIMEOUT = 15
+consecutive_blink_timeout = 0 # how many frames can pass without blinking to be considered 2 long bblinks
 
 # Eye landmarks
 (L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"] 
@@ -101,50 +105,83 @@ while 1:
 			left_EAR = calculate_EAR(lefteye) 
 			right_EAR = calculate_EAR(righteye) 
 
-			# Just left eye EAR
-			if (left_EAR < LEFT_ONLY_BLINK_THRESH): # if left eye is blinking
-				left_count_frame += 1 # incrementing the frame count for left eye
-				print("Left eye blink detected")
-				print(f"Left EAR: {left_EAR}")
-			else: 
-				if left_count_frame >= SUCC_FRAME: 
-					left_blink_counter = BLINK_DISPLAY_FRAMES
-					left_count_frame -= 1
-				
-			# frame = cv2.flip(frame, 1)
-
-			if left_blink_counter > 0:
-				cv2.putText(frame, 'Left Eye Blink Detected', (30, 30), 
-								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
-				left_blink_counter -= 1
-
-			# Just right eye EAR
-			if (right_EAR < RIGHT_ONLY_BLINK_THRESH): # if right eye is unblinking
-				right_count_frame += 1 # incrementing the frame count for right eye 
-				print("Right eye blink detected")
-				print(f"Right EAR: {right_EAR}")
-			else: 
-				if right_count_frame >= SUCC_FRAME: 
-					right_blink_counter = BLINK_DISPLAY_FRAMES
-					right_count_frame -= 1
-				
-			
-			if right_blink_counter > 0:
-				cv2.putText(frame, 'Right Eye Blink Detected', (30, 130), 
-								cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
-				right_blink_counter -= 1
-
-			# # Avg of left and right eye EAR 
-			# avg = (left_EAR+right_EAR)/2
-			# if avg < BLINK_THRESH: 
-			# 	left_count_frame += 1 # incrementing the frame count 
+			# # Just left eye EAR
+			# if (left_EAR < LEFT_BLINK_THRESH): # if left eye is blinking
+			# 	left_count_frame += 1 # incrementing the frame count for left eye
+			# 	print("Left eye blink detected")
+			# 	print(f"Left EAR: {left_EAR}")
 			# else: 
 			# 	if left_count_frame >= SUCC_FRAME: 
-			# 		cv2.putText(frame, 'Blink Detected', (30, 30), 
-			# 					cv2.FONT_HERSHEY_DUPLEX, 1, (0, 200, 0), 1) 
-			# 	else: 
-			# 		left_count_frame = 0
+			# 		left_blink_counter = BLINK_DISPLAY_FRAMES
+			# 		left_count_frame -= 1
+				
+			# # frame = cv2.flip(frame, 1)
 
+			# if left_blink_counter > 0:
+			# 	cv2.putText(frame, 'Left Eye Blink Detected', (30, 30), 
+			# 					cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
+			# 	left_blink_counter -= 1
+
+			# # Just right eye EAR
+			# if (right_EAR < RIGHT_BLINK_THRESH): # if right eye is unblinking
+			# 	right_count_frame += 1 # incrementing the frame count for right eye 
+			# 	print("Right eye blink detected")
+			# 	print(f"Right EAR: {right_EAR}")
+			# else: 
+			# 	if right_count_frame >= SUCC_FRAME: 
+			# 		right_blink_counter = BLINK_DISPLAY_FRAMES
+			# 		right_count_frame -= 1
+				
+			
+			# if right_blink_counter > 0:
+			# 	cv2.putText(frame, 'Right Eye Blink Detected', (30, 130), 
+			# 					cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
+			# 	right_blink_counter -= 1
+
+			# Avg of left and right eye EAR 
+			avg = (left_EAR+right_EAR)/2
+			if (avg < RIGHT_BLINK_THRESH): # if right eye is unblinking
+				both_count_frame += 1 # incrementing the frame count for right eye 
+				print("Long eye blink detected")
+				print(f"Avg EAR: {avg}")
+			else: 
+				# Testing for a single long blink
+				if both_count_frame >= SUCC_FRAME: 
+					print(f"both_count_frame (before): {both_count_frame}")
+					both_blink_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
+					both_count_frame = 0
+					print(f"both_count_frame (after): {both_count_frame}")
+
+					consecutive_blink_timeout = TIMEOUT # num of frames that can pass by without blinking to still be consecutive
+
+					long_blink_counter += 1 # num of long blinks
+					print(f"long_blink_counter: {long_blink_counter}")
+					
+
+			if both_blink_counter > 0:
+				cv2.putText(frame, 'Long Eye Blink Detected', (30, 30), 
+								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 200), 1) 
+
+				if (long_blink_counter == 1): # 1 long blink for left click 
+					cv2.putText(frame, 'Left Click', (30, 130), 
+								cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
+					print("Left click")
+				elif (long_blink_counter == 2): # 2 long blinks for right click
+					cv2.putText(frame, 'Right Click', (30, 130), 
+								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
+					print("Right click")
+					
+					# long_blink_counter = 0
+
+				both_blink_counter -= 1
+				print(f"both_blink_counter = {both_blink_counter}")
+			
+			if consecutive_blink_timeout > 0:
+				consecutive_blink_timeout -= 1
+				print(f"consecutive_blink_timeout: {consecutive_blink_timeout}")
+			else:
+				long_blink_counter = 0
+				# print("timed out")
 
 		cv2.imshow("Video", frame) 
 		if cv2.waitKey(5) & 0xFF == ord('q'): 

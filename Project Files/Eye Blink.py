@@ -39,7 +39,7 @@ def calculate_EAR(eye):
 
 # Variables 
 LEFT_BLINK_THRESH = 0.35 # 0.32
-RIGHT_BLINK_THRESH = 0.35
+BLINK_THRESH = 0.35
 SUCC_FRAME = 3 # for preventing false detections from slight eye movement or noise
 
 left_count_frame = 0 # how many consecutive frames left eye is unblinking
@@ -52,7 +52,7 @@ right_blink_counter = 0 # Counter for displaying blink message
 both_blink_counter = 0 # Counter for displaying blink message
 long_blink_counter = 0 # for counting consecutive long blinks
 
-TIMEOUT = 15
+TIMEOUT = 30
 consecutive_blink_timeout = 0 # how many frames can pass without blinking to be considered 2 long bblinks
 
 # Eye landmarks
@@ -140,22 +140,25 @@ while 1:
 
 			# Avg of left and right eye EAR 
 			avg = (left_EAR+right_EAR)/2
-			if (avg < RIGHT_BLINK_THRESH): # if right eye is unblinking
+			if (avg < BLINK_THRESH): # if blinking
 				both_count_frame += 1 # incrementing the frame count for right eye 
-				print("Long eye blink detected")
-				print(f"Avg EAR: {avg}")
+				# print("Long eye blink detected")
+				# print(f"Avg EAR: {avg}")
 			else: 
 				# Testing for a single long blink
 				if both_count_frame >= SUCC_FRAME: 
 					print(f"both_count_frame (before): {both_count_frame}")
-					both_blink_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
 					both_count_frame = 0
 					print(f"both_count_frame (after): {both_count_frame}")
+					
+					both_blink_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
 
+					# Reset consecutive_blink_timeout when a long blink is detected
 					consecutive_blink_timeout = TIMEOUT # num of frames that can pass by without blinking to still be consecutive
 
 					long_blink_counter += 1 # num of long blinks
 					print(f"long_blink_counter: {long_blink_counter}")
+
 					
 
 			if both_blink_counter > 0:
@@ -164,24 +167,29 @@ while 1:
 
 				if (long_blink_counter == 1): # 1 long blink for left click 
 					cv2.putText(frame, 'Left Click', (30, 130), 
-								cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
-					print("Left click")
+								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
 				elif (long_blink_counter == 2): # 2 long blinks for right click
 					cv2.putText(frame, 'Right Click', (30, 130), 
-								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
-					print("Right click")
+								cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
 					
 					# long_blink_counter = 0
 
 				both_blink_counter -= 1
-				print(f"both_blink_counter = {both_blink_counter}")
-			
+				# print(f"both_blink_counter = {both_blink_counter}")
+			else:
+				if (long_blink_counter == 1):
+					print("Left click")
+				elif (long_blink_counter == 2): # 2 long blinks for right click
+					print("Right click")
+
+			# Only decrement the timeout if no long blink is detected
 			if consecutive_blink_timeout > 0:
 				consecutive_blink_timeout -= 1
 				print(f"consecutive_blink_timeout: {consecutive_blink_timeout}")
 			else:
-				long_blink_counter = 0
-				# print("timed out")
+				long_blink_counter = 0  # Reset if timeout occurs
+				# print("Timed out")
+
 
 		cv2.imshow("Video", frame) 
 		if cv2.waitKey(5) & 0xFF == ord('q'): 

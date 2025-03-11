@@ -13,7 +13,7 @@ print(currentMouseX, currentMouseY)
 # pyautogui.moveTo(100, 150)
 
 # # Click the mouse at its current location.
-# pyautogui.click() 
+#  pyautogui.click(button='left')
 
 # # Click the mouse at the x, y coordinates 200, 220.
 # pyautogui.click(200, 220)

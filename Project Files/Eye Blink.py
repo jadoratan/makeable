@@ -96,39 +96,6 @@ while True:
 		left_EAR = calculate_EAR(lefteye) 
 		right_EAR = calculate_EAR(righteye) 
 
-		# # Just left eye EAR
-		# if (left_EAR < LEFT_BLINK_THRESH): # if left eye is blinking
-		# 	left_count_frame += 1 # incrementing the frame count for left eye
-		# 	print("Left eye blink detected")
-		# 	print(f"Left EAR: {left_EAR}")
-		# else: 
-		# 	if left_count_frame >= SUCC_FRAME: 
-		# 		left_blink_counter = BLINK_DISPLAY_FRAMES
-		# 		left_count_frame -= 1
-			
-		# # frame = cv2.flip(frame, 1)
-
-		# if left_blink_counter > 0:
-		# 	cv2.putText(frame, 'Left Eye Blink Detected', (30, 30), 
-		# 					cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
-		# 	left_blink_counter -= 1
-
-		# # Just right eye EAR
-		# if (right_EAR < RIGHT_BLINK_THRESH): # if right eye is unblinking
-		# 	right_count_frame += 1 # incrementing the frame count for right eye 
-		# 	print("Right eye blink detected")
-		# 	print(f"Right EAR: {right_EAR}")
-		# else: 
-		# 	if right_count_frame >= SUCC_FRAME: 
-		# 		right_blink_counter = BLINK_DISPLAY_FRAMES
-		# 		right_count_frame -= 1
-			
-		
-		# if right_blink_counter > 0:
-		# 	cv2.putText(frame, 'Right Eye Blink Detected', (30, 130), 
-		# 					cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
-		# 	right_blink_counter -= 1
-
 		# Avg of left and right eye EAR 
 		avg = (left_EAR+right_EAR)/2
 		if (avg < BLINK_THRESH): # if blinking

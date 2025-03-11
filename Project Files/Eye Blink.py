@@ -38,23 +38,16 @@ def calculate_EAR(eye):
 	return EAR 
 
 # Variables 
-LEFT_BLINK_THRESH = 0.35 # 0.32
-BLINK_THRESH = 0.35
+BLINK_THRESH = 0.35 # EAR must fall below this value to count as a blink
 SUCC_FRAME = 3 # for preventing false detections from slight eye movement or noise
-
-left_count_frame = 0 # how many consecutive frames left eye is unblinking
-right_count_frame = 0 # how many consecutive frames right eye is unblinking
-both_count_frame = 0
-
 BLINK_DISPLAY_FRAMES = 10 # Number of frames to display message
-left_display_counter = 0 # Counter for displaying blink message
-right_display_counter = 0 # Counter for displaying blink message
-display_counter = 0 # Counter for displaying blink message
 
+both_count_frame = 0 # number of blink frames in this set (EAR < BLINK_THRESH)
+display_counter = 0 # Counter for displaying blink message
 long_blink_counter = 0 # for counting consecutive long blinks
 
-TIMEOUT = 30
-consecutive_blink_timeout = 0 # how many frames can pass without blinking to be considered 2 long blinks
+TIMEOUT = 30 # how many frames can pass without blinking to be considered 2 long blinks
+consecutive_blink_timeout = 0 # how many frames left in timeout
 
 # Eye landmarks
 (L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"] 

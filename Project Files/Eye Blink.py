@@ -46,7 +46,7 @@ left_count_frame = 0 # how many consecutive frames left eye is unblinking
 right_count_frame = 0 # how many consecutive frames right eye is unblinking
 both_count_frame = 0
 
-BLINK_DISPLAY_FRAMES = 15 # Number of frames to display message
+BLINK_DISPLAY_FRAMES = 10 # Number of frames to display message
 left_display_counter = 0 # Counter for displaying blink message
 right_display_counter = 0 # Counter for displaying blink message
 display_counter = 0 # Counter for displaying blink message
@@ -121,22 +121,21 @@ while True:
 		if consecutive_blink_timeout > 0:
 			consecutive_blink_timeout -= 1
 			print(f"consecutive_blink_timeout: {consecutive_blink_timeout}")
-		else:
-			if (long_blink_counter == 1): # 1 long blink for left click 
-				if display_counter > 0:
+		elif display_counter > 0:
+				if (long_blink_counter == 1): # 1 long blink for left click 
 					cv2.putText(frame, 'Left Click', (30, 130), 
 								cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
-					display_counter -= 1
-			elif (long_blink_counter == 2): # 2 long blinks for right click
-				if display_counter > 0:
-					cv2.putText(frame, 'Right Click', (30, 130), 
-							cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
-					display_counter -= 1
+				elif (long_blink_counter >= 2): # 2 long blinks for right click
+						cv2.putText(frame, 'Right Click', (30, 130), 
+								cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
+				display_counter -= 1
+		else:
+			long_blink_counter = 0 # Reset if timeout occurs or once display has finished
 						
 				# long_blink_counter = 0
 				# print("Timed out")
 
-			long_blink_counter = 0  # Reset if timeout occurs
+			# long_blink_counter = 0  # Reset if timeout occurs
 		
 			
 	cv2.imshow("Video", frame) 

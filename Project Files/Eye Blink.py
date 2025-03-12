@@ -124,8 +124,10 @@ while True:
 		else: # actually click once display finishes
 			if (long_blink_counter == 1): # 1 long blink for left click 
 				pyautogui.click(button="left")
+				print("Left Click")
 			elif (long_blink_counter >= 2): # 2 long blinks for right click
 				pyautogui.click(button="right")
+				print("Right Click")
 			
 			long_blink_counter = 0 # Reset if timeout occurs or once display has finished
 						

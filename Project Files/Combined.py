@@ -1,3 +1,6 @@
+# DOCS:
+# https://forum.arduino.cc/t/arduino-accelerometer-to-python-output/638283
+
 import serial # USB communication
 import pyautogui # mouse control
 import threading

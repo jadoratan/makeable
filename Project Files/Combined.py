@@ -23,27 +23,25 @@ cursor_x, cursor_y = screen_width // 2, screen_height // 2  # Start in center
 
 # Cursor Movement (Arduino/Accelerometer) Function
 def move_cursor():
-    # global cursor_x, cursor_y
-    # while True:
-    #     if ser.in_waiting > 0:
-    #         data = ser.readline().decode().strip()
-    #         try:
-    #             xValue, yValue = map(int, data.split(","))
-                
-    #             # Convert accelerometer values to cursor movement
-    #             cursor_x += (xValue - 512) // 50  # Adjust sensitivity
-    #             cursor_y += (yValue - 512) // 50
-
-    #             # Boundaries to keep cursor within screen
-    #             cursor_x = max(0, min(screen_width, cursor_x))
-    #             cursor_y = max(0, min(screen_height, cursor_y))
-
-    #             # Move cursor
-    #             pyautogui.moveTo(cursor_x, cursor_y, duration=0.05)
-    #         except ValueError:
-    #             pass  # Ignore errors from corrupted serial data
+    global cursor_x, cursor_y
     while True:
-        print('hi')
+        if ser.in_waiting > 0:
+            data = ser.readline().decode().strip()
+            try:
+                xValue, yValue = map(int, data.split(","))
+                
+                # Convert accelerometer values to cursor movement
+                cursor_x += (xValue - 512) // 50  # Adjust sensitivity
+                cursor_y += (yValue - 512) // 50
+
+                # Boundaries to keep cursor within screen
+                cursor_x = max(0, min(screen_width, cursor_x))
+                cursor_y = max(0, min(screen_height, cursor_y))
+
+                # Move cursor
+                pyautogui.moveTo(cursor_x, cursor_y, duration=0.05)
+            except ValueError:
+                pass  # Ignore errors from corrupted serial data
 
 # EAR Calculation Function
 def calculate_EAR(eye): 

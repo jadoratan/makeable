@@ -3,24 +3,14 @@
 
 
 # Importing the required dependencies 
+import threading
 import cv2 # for video rendering 
 import dlib # for face and landmark detection 
 import imutils 
-# for calculating dist b/w the eye landmarks 
-from scipy.spatial import distance as dist 
-# to get the landmark ids of the left and right eyes 
-# you can do this manually too 
-from imutils import face_utils 
-# mouse control
-import pyautogui
+from scipy.spatial import distance as dist # for calculating dist b/w the eye landmarks  
+from imutils import face_utils # to get the landmark ids of the left and right eyes; you can do this manually too
+import pyautogui # mouse control
 
-cam = cv2.VideoCapture(0) 
-
-if not cam.isOpened():
-    print("Error: Could not open camera.")
-    exit()
-else:
-	print("Camera opened! :D")
 
 # defining a function to calculate the EAR 
 def calculate_EAR(eye): 
@@ -35,6 +25,38 @@ def calculate_EAR(eye):
 	# calculate the EAR 
 	EAR = (y1+y2) / x1 
 	return EAR 
+
+class VideoStream:
+    def __init__(self, src=0):
+        self.stream = cv2.VideoCapture(src)
+        if not cam.isOpened():
+            print("Error: Could not open camera.")
+            exit()
+        else:
+            print("Camera opened! :D")
+			
+        self.ret, self.frame = self.stream.read()
+        self.stopped = False
+        self.lock = threading.Lock()
+
+    def start(self):
+        threading.Thread(target=self.update, args=(), daemon=True).start()
+        return self
+
+    def update(self):
+        while not self.stopped:
+            ret, frame = self.stream.read()
+            with self.lock:
+                self.ret, self.frame = ret, frame
+
+    def read(self):
+        with self.lock:
+            return self.ret, self.frame
+
+    def stop(self):
+        self.stopped = True
+        self.stream.release()
+	
 
 # Variables 
 BLINK_THRESH = 0.35 # EAR must fall below this value to count as a blink
@@ -58,8 +80,15 @@ detector = dlib.get_frontal_face_detector()
 landmark_predict = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat') 
 print("Initialized models for landmark and face detection")
 
+# Main loop:
+cam = VideoStream().start()
+
 while True:
-	_, frame = cam.read() 
+	ret, frame = cam.read() 
+	
+	if not ret:
+		break
+	
 	frame = imutils.resize(frame, width=640) 
 	# frame = cv2.flip(frame, 1)
 
@@ -70,7 +99,7 @@ while True:
 	# detecting the faces 
 	faces = detector(img_gray) 
 	for face in faces: 
-
+        
 		# landmark detection 
 		shape = landmark_predict(img_gray, face) 
 

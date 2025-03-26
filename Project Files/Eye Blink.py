@@ -39,7 +39,7 @@ def calculate_EAR(eye):
 # Variables 
 BLINK_THRESH = 0.35 # EAR must fall below this value to count as a blink
 SUCC_FRAME = 3 # for preventing false detections from slight eye movement or noise
-BLINK_DISPLAY_FRAMES = 10 # Number of frames to display message
+BLINK_DISPLAY_FRAMES = 5 # Number of frames to display message
 
 both_count_frame = 0 # number of blink frames in this set (EAR < BLINK_THRESH)
 display_counter = 0 # Counter for displaying blink message
@@ -101,7 +101,7 @@ while True:
 				both_count_frame = 0
 				print(f"both_count_frame (after): {both_count_frame}")
 				
-				display_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
+				# display_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
 
 				# Reset consecutive_blink_timeout when a long blink is detected
 				consecutive_blink_timeout = TIMEOUT # num of frames that can pass by without blinking to still be consecutive
@@ -113,14 +113,14 @@ while True:
 		if consecutive_blink_timeout > 0:
 			consecutive_blink_timeout -= 1
 			print(f"consecutive_blink_timeout: {consecutive_blink_timeout}")
-		elif display_counter > 0: # timeout finishes
-			if (long_blink_counter == 1): # 1 long blink for left click 
-				cv2.putText(frame, 'Left Click', (30, 130), 
-							cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
-			elif (long_blink_counter >= 2): # 2 long blinks for right click
-					cv2.putText(frame, 'Right Click', (30, 130), 
-							cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
-			display_counter -= 1
+		# elif display_counter > 0: # timeout finishes
+		# 	if (long_blink_counter == 1): # 1 long blink for left click 
+		# 		cv2.putText(frame, 'Left Click', (30, 130), 
+		# 					cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
+		# 	elif (long_blink_counter >= 2): # 2 long blinks for right click
+		# 			cv2.putText(frame, 'Right Click', (30, 130), 
+		# 					cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
+		# 	display_counter -= 1
 		else: # actually click once display finishes
 			if (long_blink_counter == 1): # 1 long blink for left click 
 				pyautogui.click(button="left")
@@ -131,7 +131,9 @@ while True:
 			
 			long_blink_counter = 0 # Reset if timeout occurs or once display has finished
 						
-		
+		# Drawing facial landmarks
+		for (x, y) in shape:
+			cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
 			
 	cv2.imshow("Video", frame) 
 	if cv2.waitKey(5) & 0xFF == ord('q'): 

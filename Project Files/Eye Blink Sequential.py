@@ -34,8 +34,8 @@ def calculate_EAR(eye):
 	return EAR 
 
 # Variables 
-BLINK_THRESH = 0.45 # EAR must fall below this value to count as a blink
-SUCC_FRAME = 10 # for preventing false detections from slight eye movement or noise
+BLINK_THRESH = 0.38 # EAR must fall below this value to count as a blink
+SUCC_FRAME = 8 # for preventing false detections from slight eye movement or noise
 BLINK_DISPLAY_FRAMES = 5 # Number of frames to display message
 
 both_count_frame = 0 # number of blink frames in this set (EAR < BLINK_THRESH)
@@ -100,8 +100,6 @@ while True:
 			# Testing for a single long blink
 			if both_count_frame >= SUCC_FRAME: 
 				print(f"both_count_frame (before): {both_count_frame}")
-				both_count_frame = 0
-				print(f"both_count_frame (after): {both_count_frame}")
 				
 				# display_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
 
@@ -110,6 +108,10 @@ while True:
 
 				long_blink_counter += 1 # num of long blinks
 				print(f"long_blink_counter: {long_blink_counter}")
+			
+			# Reset consecutive frames count regardless of short or long blink
+			both_count_frame = 0
+			# print(f"both_count_frame (after): {both_count_frame}")
 
 		# Only decrement the timeout after first long blink
 		if consecutive_blink_timeout > 0:

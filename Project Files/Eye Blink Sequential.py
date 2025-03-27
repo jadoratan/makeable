@@ -11,7 +11,7 @@ from imutils import face_utils # to get the landmark ids of the left and right e
 import pyautogui # mouse control
 
 
-cam = cv2.VideoCapture(0) 
+cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Use appropriate backend
 
 if not cam.isOpened():
     print("Error: Could not open camera.")
@@ -34,8 +34,8 @@ def calculate_EAR(eye):
 	return EAR 
 
 # Variables 
-BLINK_THRESH = 0.35 # EAR must fall below this value to count as a blink
-SUCC_FRAME = 3 # for preventing false detections from slight eye movement or noise
+BLINK_THRESH = 0.45 # EAR must fall below this value to count as a blink
+SUCC_FRAME = 10 # for preventing false detections from slight eye movement or noise
 BLINK_DISPLAY_FRAMES = 5 # Number of frames to display message
 
 both_count_frame = 0 # number of blink frames in this set (EAR < BLINK_THRESH)
@@ -59,6 +59,7 @@ while True:
 	_, frame = cam.read() 
 	frame = imutils.resize(frame, width=640) 
 	# frame = cv2.flip(frame, 1)
+	# print("Cam capturing")
 
 	# converting frame to gray scale to 
 	# pass to detector 
@@ -70,10 +71,12 @@ while True:
 
 		# landmark detection 
 		shape = landmark_predict(img_gray, face) 
+		# print("Landmarks predicted")
 
 		# converting the shape class directly 
 		# to a list of (x,y) coordinates 
 		shape = face_utils.shape_to_np(shape) 
+		# print("Face utils to shape")
 
 		# parsing the landmarks list to extract 
 		# lefteye and righteye landmarks--# 
@@ -84,9 +87,11 @@ while True:
 		# Calculate the EAR (Eye Aspect Ratio)
 		left_EAR = calculate_EAR(lefteye) 
 		right_EAR = calculate_EAR(righteye) 
+		# print("Calculations")
 
 		# Avg of left and right eye EAR 
 		avg = (left_EAR+right_EAR)/2
+		# print(avg)
 		if (avg < BLINK_THRESH): # if blinking
 			both_count_frame += 1 # incrementing the frame count for right eye 
 			# print("Long eye blink detected")

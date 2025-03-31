@@ -34,15 +34,15 @@ def calculate_EAR(eye):
 	return EAR 
 
 # Variables 
-BLINK_THRESH = 0.38 # EAR must fall below this value to count as a blink
-SUCC_FRAME = 8 # for preventing false detections from slight eye movement or noise
+BLINK_THRESH = 0.40 # EAR must fall below this value to count as a blink
+SUCC_FRAME = 7 # for preventing false detections from slight eye movement or noise
 BLINK_DISPLAY_FRAMES = 5 # Number of frames to display message
 
 both_count_frame = 0 # number of blink frames in this set (EAR < BLINK_THRESH)
 display_counter = 0 # Counter for displaying blink message
 long_blink_counter = 0 # for counting consecutive long blinks
 
-TIMEOUT = 30 # how many frames can pass without blinking to be considered 2 long blinks
+TIMEOUT = 40 # how many frames can pass without blinking to be considered 2 long blinks
 consecutive_blink_timeout = 0 # how many frames left in timeout
 
 # Eye landmarks

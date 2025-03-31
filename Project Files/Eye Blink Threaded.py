@@ -1,6 +1,12 @@
 # DOCS:
 # https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
 
+# Closest faces
+# https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
+
+# Cropping faces
+# https://stackoverflow.com/questions/40008806/how-to-save-crop-detected-faces-in-dlib-python
+
 
 # Importing the required dependencies 
 import threading

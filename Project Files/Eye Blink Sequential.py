@@ -1,5 +1,8 @@
 # DOCS:
 # https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
+# Closest faces
+# https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
+
 
 
 # Importing the required dependencies 
@@ -9,6 +12,7 @@ import imutils
 from scipy.spatial import distance as dist # for calculating dist b/w the eye landmarks  
 from imutils import face_utils # to get the landmark ids of the left and right eyes; you can do this manually too
 import pyautogui # mouse control
+import numpy as np # for sorting array of faces
 
 
 cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Use appropriate backend
@@ -21,7 +25,6 @@ else:
 
 # defining a function to calculate the EAR 
 def calculate_EAR(eye): 
-
 	# calculate the vertical distances 
 	y1 = dist.euclidean(eye[1], eye[5]) 
 	y2 = dist.euclidean(eye[2], eye[4]) 
@@ -67,6 +70,7 @@ while True:
 
 	# detecting the faces 
 	faces = detector(img_gray) 
+	
 	for face in faces: 
 
 		# landmark detection 

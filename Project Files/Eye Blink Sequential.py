@@ -5,7 +5,7 @@
 
 
 
-# Importing the required dependencies 
+# Importing the required dependencies
 import cv2 # for video rendering 
 import dlib # for face and landmark detection 
 import imutils 
@@ -13,28 +13,6 @@ from scipy.spatial import distance as dist # for calculating dist b/w the eye la
 from imutils import face_utils # to get the landmark ids of the left and right eyes; you can do this manually too
 import pyautogui # mouse control
 import numpy as np # for sorting array of faces
-
-
-cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Use appropriate backend
-
-if not cam.isOpened():
-    print("Error: Could not open camera.")
-    exit()
-else:
-	print("Camera opened! :D")
-
-# defining a function to calculate the EAR 
-def calculate_EAR(eye): 
-	# calculate the vertical distances 
-	y1 = dist.euclidean(eye[1], eye[5]) 
-	y2 = dist.euclidean(eye[2], eye[4]) 
-
-	# calculate the horizontal distance 
-	x1 = dist.euclidean(eye[0], eye[3]) 
-
-	# calculate the EAR 
-	EAR = (y1+y2) / x1 
-	return EAR 
 
 # Variables 
 BLINK_THRESH = 0.40 # EAR must fall below this value to count as a blink
@@ -47,6 +25,56 @@ long_blink_counter = 0 # for counting consecutive long blinks
 
 TIMEOUT = 40 # how many frames can pass without blinking to be considered 2 long blinks
 consecutive_blink_timeout = 0 # how many frames left in timeout
+
+# Functions
+# Calculates the eye aspect ratio (EAR) 
+def calculate_EAR(eye): 
+	# calculate the vertical distances 
+	y1 = dist.euclidean(eye[1], eye[5]) 
+	y2 = dist.euclidean(eye[2], eye[4]) 
+
+	# calculate the horizontal distance 
+	x1 = dist.euclidean(eye[0], eye[3]) 
+
+	# calculate the EAR 
+	EAR = (y1+y2) / x1 
+	return EAR 
+
+
+# Identifies the user's face (the nearest face to the camera in theory)
+def nearest_face(faces):
+	def area(x, y, w, h):
+		return (w - x) * (h - y)
+
+	max_area = -1
+	max_index = -1
+
+	for i, face in enumerate(faces):
+		x = face.left()
+		y = face.top()
+		w = face.right()
+		h = face.bottom()
+		my_area = area(x, y, w, h)
+		# print(f"Face {i} area: {my_area}")
+		
+		if my_area > max_area: # face with highest area is nearest face
+			max_area = my_area
+			max_index = i
+	
+	return max_index # return index of nearest face from list of faces
+
+# Camera initialization
+cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Use appropriate backend
+
+if not cam.isOpened():
+	print("Error: Could not open camera.")
+	exit()
+else:
+	print("Camera opened! :D")
+
+
+# Identifying user's face
+# if no face is detected, program continues searching for face until one is identified
 
 # Eye landmarks
 (L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"] 
@@ -70,8 +98,10 @@ while True:
 
 	# detecting the faces 
 	faces = detector(img_gray) 
+	user = nearest_face(faces)
 	
-	for face in faces: 
+	if (user>=0): # if a face is detected (index is not -1)
+		face = faces[user] # set the nearest face as the one to track
 
 		# landmark detection 
 		shape = landmark_predict(img_gray, face) 

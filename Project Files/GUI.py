@@ -1,13 +1,14 @@
 # DOCS:
 # https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/
 
-# Imports
+# GUI Imports
 # import tkinter as tk
 # from tkinter import ttk
 import ttkbootstrap as ttk
 from ttkbootstrap.tableview import Tableview
 from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.constants import *
+from PIL import Image, ImageTk
 
 # Functions
 def on_toggle():
@@ -18,8 +19,6 @@ def on_toggle():
 		tracking_message = "Tracking has been turned ON."
 		next_state = "Stop tracking"
 		print("Tracking ON")
-
-
 	else:
 		tracking_message = "Tracking has been turned OFF."
 		next_state = "Start tracking"
@@ -41,47 +40,23 @@ window.title("Tracking Mouse")
 window.geometry("1000x800")
 colors = window.style.colors
 
+# Left & Right Panels (Frames)
+left_panel = ttk.Frame(master=window)
+right_panel = ttk.Frame(master=window)
+
 # Title + Intro Frame
-intro_frame = ttk.Frame(master=window)
+intro_frame = ttk.Frame(master=left_panel)
 title_label = ttk.Label(master=intro_frame, text="Tracking Mouse", font="Calibri 24 bold")
-intro_label = ttk.Label(master=intro_frame, text="Welcome to Tracking Mouse, a hands-free computer mouse built for your convenience!")
+intro_label = ttk.Label(master=intro_frame, text="Welcome to Tracking Mouse, a hands-free \ncomputer mouse built for your convenience!")
+
 title_label.pack()
 intro_label.pack()
-intro_frame.pack()
 
-
-# Key - table of cursor action and user input
-key_frame = ttk.Frame(master=window)
-
-coldata = [
-    {"text": "Cursor Action", "stretch": False},
-    {"text": "User Input", "stretch": False},
-]
-
-rowdata = [
-    ("Move cursor in any direction", "Wear headband and move head in desired direction"),
-	("Left click", "1 long blink"),
-	("Right click", "2 long blinks")
-]
-
-key_dt = Tableview(
-    master=key_frame,
-    coldata=coldata,
-    rowdata=rowdata,
-	autofit=True,
-	height=3,
-    searchable=False, # search entries
-	paginated=False, # next page
-    bootstyle=PRIMARY,
-    stripecolor=(colors.light, None),
-)
-
-key_dt.pack(fill=BOTH, expand=YES, padx=10, pady=10)
-key_frame.pack()
+intro_frame.pack(padx=10, pady=10)
 
 
 # Program status
-status_frame = ttk.Frame(master=window)
+status_frame = ttk.Frame(master=left_panel)
 status_title_label = ttk.Label(master=status_frame, text="App Status:", font="Calibri 24 bold")
 
 start_toggle_bool = ttk.BooleanVar()
@@ -129,7 +104,50 @@ headband_label.pack()
 camera_checkbox.pack()
 camera_label.pack()
 
-status_frame.pack()
+status_frame.pack(padx=10, pady=10)
+
+
+# Key - table of cursor action and user input
+key_frame = ttk.Frame(master=right_panel)
+key_title_label =  ttk.Label(master=key_frame, text="Inputs", font="Calibri 24 bold")
+coldata = [
+    {"text": "Cursor Action", "stretch": False},
+    {"text": "User Input", "stretch": False},
+]
+
+rowdata = [
+    ("Move cursor in any direction", "Wear headband and move head in desired direction"),
+	("Left click", "1 long blink"),
+	("Right click", "2 long blinks")
+]
+
+key_dt = Tableview(
+    master=key_frame,
+    coldata=coldata,
+    rowdata=rowdata,
+	autofit=True,
+	height=3,
+    searchable=False, # search entries
+	paginated=False, # next page
+    bootstyle=PRIMARY,
+    stripecolor=(colors.light, None),
+)
+
+key_title_label.pack()
+key_dt.pack(fill=BOTH, expand=YES, padx=10, pady=10)
+
+key_frame.pack(padx=10, pady=10)
+
+
+# Video Feed
+video_frame = ttk.Frame(master=right_panel)
+video_label = ttk.Label(master=video_frame, text="video feed goes here")
+
+video_label.pack()
+video_frame.pack(padx=10, pady=10)
+
 
 # Run
+left_panel.pack(side="left", expand=True, fill=BOTH)
+right_panel.pack(side="right", expand=True, fill=BOTH)
 window.mainloop()

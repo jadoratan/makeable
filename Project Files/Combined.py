@@ -23,15 +23,31 @@ from scipy.spatial import distance as dist # for calculating dist b/w the eye la
 from imutils import face_utils # to get the landmark ids of the left and right eyes; you can do this manually too
 import pyautogui # mouse control
 import numpy as np # for sorting array of faces
+import pygame # sound effects
 
+# Global Constants & Variables
+global BLINK_THRESH # EAR must fall below this value to count as a blink
+global SUCC_FRAME # for preventing false detections from slight eye movement or noise
+global BLINK_DISPLAY_FRAMES # Number of frames to display message
+global TIMEOUT # how many frames can pass without blinking to be considered 2 long blinks
+
+BLINK_THRESH = 0.40
+SUCC_FRAME = 7
+BLINK_DISPLAY_FRAMES = 5
+TIMEOUT = 40
+
+global both_count_frame, long_blink_counter, consecutive_blink_timeout # blink tracker variables
+
+# Initalize sound 
+pygame.mixer.init()
+click_sound = pygame.mixer.Sound("click_sound.mp3")
+click_sound.set_volume(0.5)  # range is 0.0 to 1.0
 
 
 # Functions
 # For turning the blink tracking program on/off
 def on_toggle():
-	on = start_toggle_bool.get()
-
-	if (on):
+	if (start_toggle_bool.get()): # if toggle is on
 		start_string.set("Stop tracking")
 		toast = ToastNotification(
 			title="Tracking Mouse",
@@ -54,176 +70,150 @@ def on_toggle():
 		)
 
 		headband_toggle_bool.set(False)
+		headband_string.set("Headband not connected")
 		camera_toggle_bool.set(False)
+		camera_string.set("Camera not connected.")
+		
 		toast.show_toast()
 		print("Tracking OFF")
+		  
+		  
+# Calculates the eye aspect ratio (EAR) 
+def calculate_EAR(eye): 
+	# calculate the vertical distances 
+	y1 = dist.euclidean(eye[1], eye[5]) 
+	y2 = dist.euclidean(eye[2], eye[4]) 
+
+	# calculate the horizontal distance 
+	x1 = dist.euclidean(eye[0], eye[3]) 
+
+	# calculate the EAR 
+	EAR = (y1+y2) / x1 
+	return EAR 
+
+
+# Identifies the user's face (the nearest face to the camera in theory)
+def nearest_face(faces):
+	def area(x, y, w, h):
+		return (w - x) * (h - y)
+
+	max_area = -1
+	max_index = -1
+
+	for i, face in enumerate(faces):
+		x = face.left()
+		y = face.top()
+		w = face.right()
+		h = face.bottom()
+		my_area = area(x, y, w, h)
+		# print(f"Face {i} area: {my_area}")
+		
+		if my_area > max_area: # face with highest area is nearest face
+			max_area = my_area
+			max_index = i
+	
+	return max_index # return index of nearest face from list of faces
 	
 	
 # the actual blink tracking program
 def tracking():
-	# Variables 
-	BLINK_THRESH = 0.40 # EAR must fall below this value to count as a blink
-	SUCC_FRAME = 7 # for preventing false detections from slight eye movement or noise
-	BLINK_DISPLAY_FRAMES = 5 # Number of frames to display message
-
-	both_count_frame = 0 # number of blink frames in this set (EAR < BLINK_THRESH)
-	display_counter = 0 # Counter for displaying blink message
-	long_blink_counter = 0 # for counting consecutive long blinks
-
-	TIMEOUT = 40 # how many frames can pass without blinking to be considered 2 long blinks
-	consecutive_blink_timeout = 0 # how many frames left in timeout
-
-	# Functions
-	# Calculates the eye aspect ratio (EAR) 
-	def calculate_EAR(eye): 
-		# calculate the vertical distances 
-		y1 = dist.euclidean(eye[1], eye[5]) 
-		y2 = dist.euclidean(eye[2], eye[4]) 
-
-		# calculate the horizontal distance 
-		x1 = dist.euclidean(eye[0], eye[3]) 
-
-		# calculate the EAR 
-		EAR = (y1+y2) / x1 
-		return EAR 
-
-
-	# Identifies the user's face (the nearest face to the camera in theory)
-	def nearest_face(faces):
-		def area(x, y, w, h):
-			return (w - x) * (h - y)
-
-		max_area = -1
-		max_index = -1
-
-		for i, face in enumerate(faces):
-			x = face.left()
-			y = face.top()
-			w = face.right()
-			h = face.bottom()
-			my_area = area(x, y, w, h)
-			# print(f"Face {i} area: {my_area}")
-			
-			if my_area > max_area: # face with highest area is nearest face
-				max_area = my_area
-				max_index = i
-		
-		return max_index # return index of nearest face from list of faces
-
-	# Camera initialization
-	cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)  # Use appropriate backend
-
+	# Initialize camera and models(only once)
+	global cam, detector, landmark_predict, L_start, L_end, R_start, R_end
+	cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 	if not cam.isOpened():
 		print("Error: Could not open camera.")
-		exit()
-	else:
-		print("Camera opened! :D")
-		camera_toggle_bool.set(True)
+		return
 
+	print("Camera opened! :D")
+	camera_toggle_bool.set(True)
+	camera_string.set("Camera connected")
 
-	# Identifying user's face
-	# if no face is detected, program continues searching for face until one is identified
+	(L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
+	(R_start, R_end) = face_utils.FACIAL_LANDMARKS_IDXS['right_eye']
+	detector = dlib.get_frontal_face_detector()
+	landmark_predict = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
 
-	# Eye landmarks
-	(L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"] 
-	(R_start, R_end) = face_utils.FACIAL_LANDMARKS_IDXS['right_eye'] 
-
-	# Initializing the Models for Landmark and 
-	# face Detection 
-	detector = dlib.get_frontal_face_detector() 
-	landmark_predict = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat') 
 	print("Initialized models for landmark and face detection")
 
-	while True:
-		_, frame = cam.read() 
-		frame = imutils.resize(frame, width=640) 
-		# frame = cv2.flip(frame, 1)
-		# print("Cam capturing")
+	# Reset any blink tracking state vars
+	reset_tracking_state()
 
-		# converting frame to gray scale to 
-		# pass to detector 
-		img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY) 
+	# Start frame loop
+	# window.after(0, track_frame)
+	track_frame()
 
-		# detecting the faces 
-		faces = detector(img_gray) 
-		user = nearest_face(faces)
-		
-		if (user>=0): # if a face is detected (index is not -1)
-			face = faces[user] # set the nearest face as the one to track
+def track_frame():
+	global cam, detector, landmark_predict
+	global both_count_frame, long_blink_counter, consecutive_blink_timeout
 
-			# landmark detection 
-			shape = landmark_predict(img_gray, face) 
-			# print("Landmarks predicted")
+	if not start_toggle_bool.get(): # if toggle is not on
+		cam.release()
+		cv2.destroyAllWindows()
+		return
 
-			# converting the shape class directly 
-			# to a list of (x,y) coordinates 
-			shape = face_utils.shape_to_np(shape) 
-			# print("Face utils to shape")
+	ret, frame = cam.read()
+	if not ret:
+		print("Failed to grab frame")
+		window.after(10, track_frame)
+		return
 
-			# parsing the landmarks list to extract 
-			# lefteye and righteye landmarks--# 
-			# they're switched because the mirroring messes it up #
-			righteye = shape[L_start: L_end]
-			lefteye = shape[R_start:R_end] 
+	frame = imutils.resize(frame, width=640)
+	img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+	faces = detector(img_gray)
+	user = nearest_face(faces)
 
-			# Calculate the EAR (Eye Aspect Ratio)
-			left_EAR = calculate_EAR(lefteye) 
-			right_EAR = calculate_EAR(righteye) 
-			# print("Calculations")
+	if user >= 0:
+		face = faces[user]
+		shape = landmark_predict(img_gray, face)
+		shape = face_utils.shape_to_np(shape)
 
-			# Avg of left and right eye EAR 
-			avg = (left_EAR+right_EAR)/2
-			# print(avg)
-			if (avg < BLINK_THRESH): # if blinking
-				both_count_frame += 1 # incrementing the frame count for right eye 
-				# print("Long eye blink detected")
-				# print(f"Avg EAR: {avg}")
-			else: 
-				# Testing for a single long blink
-				if both_count_frame >= SUCC_FRAME: 
-					print(f"both_count_frame (before): {both_count_frame}")
-					
-					# display_counter = BLINK_DISPLAY_FRAMES # num of frames blink message will be displayed
+		righteye = shape[L_start:L_end]
+		lefteye = shape[R_start:R_end]
+		left_EAR = calculate_EAR(lefteye)
+		right_EAR = calculate_EAR(righteye)
+		avg = (left_EAR + right_EAR) / 2
 
-					# Reset consecutive_blink_timeout when a long blink is detected
-					consecutive_blink_timeout = TIMEOUT # num of frames that can pass by without blinking to still be consecutive
+		if avg < BLINK_THRESH:
+			both_count_frame += 1
+		else:
+			if both_count_frame >= SUCC_FRAME:
+				consecutive_blink_timeout = TIMEOUT
+				long_blink_counter += 1
+				print(f"long_blink_counter: {long_blink_counter}")
+			
+			both_count_frame = 0
 
-					long_blink_counter += 1 # num of long blinks
-					print(f"long_blink_counter: {long_blink_counter}")
-				
-				# Reset consecutive frames count regardless of short or long blink
-				both_count_frame = 0
-				# print(f"both_count_frame (after): {both_count_frame}")
+		if consecutive_blink_timeout > 0:
+			consecutive_blink_timeout -= 1
+			print(f"consecutive_blink_timeout: {consecutive_blink_timeout}")
+		else:
+			if long_blink_counter == 1:
+				pyautogui.click(button="left")
+				click_sound.play()
+				print("Left Click")
+			elif long_blink_counter >= 2:
+				pyautogui.click(button="right")
+				click_sound.play()
+				print("Right Click")
 
-			# Only decrement the timeout after first long blink
-			if consecutive_blink_timeout > 0:
-				consecutive_blink_timeout -= 1
-				print(f"consecutive_blink_timeout: {consecutive_blink_timeout}")
-			# elif display_counter > 0: # timeout finishes
-			# 	if (long_blink_counter == 1): # 1 long blink for left click 
-			# 		cv2.putText(frame, 'Left Click', (30, 130), 
-			# 					cv2.FONT_HERSHEY_PLAIN, 1, (200, 0, 0), 1) 
-			# 	elif (long_blink_counter >= 2): # 2 long blinks for right click
-			# 			cv2.putText(frame, 'Right Click', (30, 130), 
-			# 					cv2.FONT_HERSHEY_PLAIN, 1, (0, 0, 200), 1) 
-			# 	display_counter -= 1
-			else: # actually click once display finishes
-				if (long_blink_counter == 1): # 1 long blink for left click 
-					pyautogui.click(button="left")
-					print("Left Click")
-				elif (long_blink_counter >= 2): # 2 long blinks for right click
-					pyautogui.click(button="right")
-					print("Right Click")
-				
-				long_blink_counter = 0 # Reset if timeout occurs or once display has finished
-							
-			# Drawing facial landmarks
-			for (x, y) in shape:
-				cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
-				
-		cv2.imshow("Video", frame) 
-		if cv2.waitKey(5) & 0xFF == ord('q'): 
-			break
+			long_blink_counter = 0
+
+		for (x, y) in shape:
+			cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
+
+	cv2.imshow("Video", frame)
+	if cv2.waitKey(1) & 0xFF == ord('q'):
+		on_toggle()  # Stop tracking if user hits 'q'
+		return
+
+	window.after(10, track_frame)  # Schedule next frame
+
+def reset_tracking_state():
+	global both_count_frame, long_blink_counter, consecutive_blink_timeout
+	both_count_frame = 0
+	long_blink_counter = 0
+	consecutive_blink_timeout = 0
+
 	
 
 # Window

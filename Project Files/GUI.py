@@ -13,25 +13,33 @@ from PIL import Image, ImageTk
 # Functions
 def on_toggle():
 	on = start_toggle_bool.get()
-	tracking_message = ""
 
 	if (on):
-		tracking_message = "Tracking has been turned ON."
-		next_state = "Stop tracking"
+		start_string.set("Stop tracking")
+		toast = ToastNotification(
+			title="Tracking Mouse",
+			message="Tracking has been turned ON.",
+			duration=3000,
+			bootstyle="info"
+		)
+
+		toast.show_toast()
 		print("Tracking ON")
 	else:
-		tracking_message = "Tracking has been turned OFF."
-		next_state = "Start tracking"
+		start_string.set("Start tracking")
+		toast = ToastNotification(
+			title="Tracking Mouse",
+			message="Tracking has been turned OFF.",
+			duration=3000,
+			bootstyle="info"
+		)
+
+		headband_toggle_bool.set(False)
+		headband_string.set("Headband not connected")
+		camera_toggle_bool.set(False)
+		camera_string.set("Camera not connected.")
+		toast.show_toast()
 		print("Tracking OFF")
-	
-	start_string.set(next_state)
-	toast = ToastNotification(
-		title="Tracking Mouse",
-		message=tracking_message,
-		duration=3000,
-		bootstyle="info"
-	)
-	toast.show_toast()
     
 
 # Window

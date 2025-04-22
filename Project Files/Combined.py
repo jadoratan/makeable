@@ -3,7 +3,10 @@
 # https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
 # https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
 
-
+# Media credits:
+# [1] ChatRat Image (window icon) - https://logopond.com/SKitanovic/showcase/detail/276227
+# [2] Mouse Click Sound - https://pixabay.com/sound-effects/mouse-click-290204/
+# [3] Camera With Slash Image - https://www.svgrepo.com/svg/357442/camera-slash
 
 # Imports
 # GUI Imports
@@ -73,7 +76,14 @@ def on_toggle():
 		headband_string.set("Headband not connected")
 		camera_toggle_bool.set(False)
 		camera_string.set("Camera not connected.")
-		
+
+		camera_off_img = Image.open("camera-off.png")
+		imgtk = ImageTk.PhotoImage(image=camera_off_img)
+
+		# Update the image in label
+		video_label.imgtk = imgtk  # Prevent garbage collection
+		video_label.config(image=imgtk)
+
 		toast.show_toast()
 		print("Tracking OFF")
 		  
@@ -158,6 +168,8 @@ def track_frame():
 		return
 
 	frame = imutils.resize(frame, width=640)
+	# print(f"Frame size: {frame.shape}")
+	# return
 	img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	faces = detector(img_gray)
 	user = nearest_face(faces)
@@ -201,7 +213,16 @@ def track_frame():
 		for (x, y) in shape:
 			cv2.circle(frame, (x, y), 2, (0, 255, 0), -1)
 
-	cv2.imshow("Video", frame)
+	# Convert BGR to RGB
+	frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+	final_img = Image.fromarray(frame)
+	imgtk = ImageTk.PhotoImage(image=final_img)
+
+	# Update the image in label
+	video_label.imgtk = imgtk  # Prevent garbage collection
+	video_label.config(image=imgtk)
+
+	# cv2.imshow("Video", frame)
 	if cv2.waitKey(1) & 0xFF == ord('q'):
 		on_toggle()  # Stop tracking if user hits 'q'
 		return
@@ -319,6 +340,21 @@ key_title_label.pack()
 key_dt.pack(fill=BOTH, expand=YES, padx=10, pady=10)
 
 key_frame.pack(side="top")
+
+
+# Video Feed
+video_frame = ttk.Frame(master=right_panel)
+video_label = ttk.Label(master=video_frame)
+
+camera_off_img = Image.open("camera-off.png")
+imgtk = ImageTk.PhotoImage(image=camera_off_img)
+
+# Update the image in label
+video_label.imgtk = imgtk  # Prevent garbage collection
+video_label.config(image=imgtk)
+
+video_label.pack()
+video_frame.pack(padx=10, pady=10)
 
 # Run
 left_panel.pack(side="left", expand=True, fill=BOTH)

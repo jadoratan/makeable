@@ -8,7 +8,8 @@
 # [2] Mouse Click Sound - https://pixabay.com/sound-effects/mouse-click-290204/
 # [3] Camera With Slash Image - https://www.svgrepo.com/svg/357442/camera-slash
 
-# Imports
+
+################################# Imports #################################
 # GUI Imports
 # import tkinter as tk
 # from tkinter import ttk
@@ -28,7 +29,8 @@ import pyautogui # mouse control
 import numpy as np # for sorting array of faces
 import pygame # sound effects
 
-# Global Constants & Variables
+
+################################# Global Constants & Variables #################################
 global BLINK_THRESH # EAR must fall below this value to count as a blink
 global SUCC_FRAME # for preventing false detections from slight eye movement or noise
 global BLINK_DISPLAY_FRAMES # Number of frames to display message
@@ -41,53 +43,15 @@ TIMEOUT = 40
 
 global both_count_frame, long_blink_counter, consecutive_blink_timeout # blink tracker variables
 
+
+################################# BACKEND #################################
 # Initalize sound 
 pygame.mixer.init()
 click_sound = pygame.mixer.Sound("click_sound.mp3")
 click_sound.set_volume(0.5)  # range is 0.0 to 1.0
 
 
-# Functions
-# For turning the blink tracking program on/off
-def on_toggle():
-	if (start_toggle_bool.get()): # if toggle is on
-		start_string.set("Stop tracking")
-		toast = ToastNotification(
-			title="Tracking Mouse",
-			message="Tracking has been turned ON.",
-			duration=3000,
-			bootstyle="info"
-		)
-
-		toast.show_toast()
-		print("Tracking ON")
-
-		tracking()
-	else:
-		start_string.set("Start tracking")
-		toast = ToastNotification(
-			title="Tracking Mouse",
-			message="Tracking has been turned OFF.",
-			duration=3000,
-			bootstyle="info"
-		)
-
-		headband_toggle_bool.set(False)
-		headband_string.set("Headband not connected")
-		camera_toggle_bool.set(False)
-		camera_string.set("Camera not connected.")
-
-		camera_off_img = Image.open("camera-off.png")
-		imgtk = ImageTk.PhotoImage(image=camera_off_img)
-
-		# Update the image in label
-		video_label.imgtk = imgtk  # Prevent garbage collection
-		video_label.config(image=imgtk)
-
-		toast.show_toast()
-		print("Tracking OFF")
-		  
-		  
+# Backend Functions
 # Calculates the eye aspect ratio (EAR) 
 def calculate_EAR(eye): 
 	# calculate the vertical distances 
@@ -151,6 +115,7 @@ def tracking():
 	# Start frame loop
 	# window.after(0, track_frame)
 	track_frame()
+
 
 def track_frame():
 	global cam, detector, landmark_predict
@@ -229,6 +194,7 @@ def track_frame():
 
 	window.after(10, track_frame)  # Schedule next frame
 
+
 def reset_tracking_state():
 	global both_count_frame, long_blink_counter, consecutive_blink_timeout
 	both_count_frame = 0
@@ -236,7 +202,49 @@ def reset_tracking_state():
 	consecutive_blink_timeout = 0
 
 	
+################################# GUI #################################
+# GUI Functions
+# For turning the blink tracking program on/off
+def on_toggle():
+	if (start_toggle_bool.get()): # if toggle is on
+		start_string.set("Stop tracking")
+		toast = ToastNotification(
+			title="Tracking Mouse",
+			message="Tracking has been turned ON.",
+			duration=3000,
+			bootstyle="info"
+		)
 
+		toast.show_toast()
+		print("Tracking ON")
+
+		tracking()
+	else:
+		start_string.set("Start tracking")
+		toast = ToastNotification(
+			title="Tracking Mouse",
+			message="Tracking has been turned OFF.",
+			duration=3000,
+			bootstyle="info"
+		)
+
+		headband_toggle_bool.set(False)
+		headband_string.set("Headband not connected")
+		camera_toggle_bool.set(False)
+		camera_string.set("Camera not connected.")
+
+		camera_off_img = Image.open("camera-off.png")
+		imgtk = ImageTk.PhotoImage(image=camera_off_img)
+
+		# Update the image in label
+		video_label.imgtk = imgtk  # Prevent garbage collection
+		video_label.config(image=imgtk)
+
+		toast.show_toast()
+		print("Tracking OFF")
+
+
+# Elements
 # Window
 window = ttk.Window(themename="yeti", iconphoto="lab_rats_logo.png")
 window.title("Tracking Mouse")

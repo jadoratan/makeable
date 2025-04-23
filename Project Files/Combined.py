@@ -21,6 +21,7 @@ from PIL import Image, ImageTk
 
 # Backend Imports
 import cv2 # for video rendering 
+# import numpy as np
 import dlib # for face and landmark detection 
 import imutils 
 from scipy.spatial import distance as dist # for calculating dist b/w the eye landmarks  
@@ -48,7 +49,7 @@ global both_count_frame, long_blink_counter, consecutive_blink_timeout # blink t
 # Initalize sound 
 pygame.mixer.init()
 click_sound = pygame.mixer.Sound("click_sound.mp3")
-click_sound.set_volume(0.5)  # range is 0.0 to 1.0
+click_sound.set_volume(1.0)  # range is 0.0 to 1.0
 
 
 # Backend Functions
@@ -133,11 +134,12 @@ def track_frame():
 		return
 
 	frame = imutils.resize(frame, width=640)
-	# print(f"Frame size: {frame.shape}")
-	# return
 	img_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 	faces = detector(img_gray)
 	user = nearest_face(faces)
+
+	# print(f"Frame size: {img_gray.shape}")
+	# return
 
 	if user >= 0:
 		face = faces[user]
@@ -354,12 +356,13 @@ key_frame.pack(side="top")
 video_frame = ttk.Frame(master=right_panel)
 video_label = ttk.Label(master=video_frame)
 
-camera_off_img = Image.open("camera-off.png")
-imgtk = ImageTk.PhotoImage(image=camera_off_img)
+camera_off_img = Image.open("camera-off.png").resize((640,480))
+img = ImageTk.PhotoImage(image=camera_off_img, size="640x480")
 
 # Update the image in label
-video_label.imgtk = imgtk  # Prevent garbage collection
-video_label.config(image=imgtk)
+video_label.imgtk = img  # Prevent garbage collection
+video_label.config(image=img)
+print(f"Image size: {video_label.imgtk.width()}x{video_label.imgtk.height()}")
 
 video_label.pack()
 video_frame.pack(padx=10, pady=10)

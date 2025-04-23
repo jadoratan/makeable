@@ -48,7 +48,7 @@ global both_count_frame, long_blink_counter, consecutive_blink_timeout # blink t
 ################################# BACKEND #################################
 # Initalize sound 
 pygame.mixer.init()
-click_sound = pygame.mixer.Sound("click_sound.mp3")
+click_sound = pygame.mixer.Sound("click_sound_20.mp3")
 click_sound.set_volume(1.0)  # range is 0.0 to 1.0
 
 
@@ -250,78 +250,85 @@ def on_toggle():
 # Window
 window = ttk.Window(themename="yeti", iconphoto="lab_rats_logo.png")
 window.title("Tracking Mouse")
-window.geometry("1000x800")
+window.geometry("1250x700")
 colors = window.style.colors
 
 # Left & Right Panels (Frames)
-left_panel = ttk.Frame(master=window)
-right_panel = ttk.Frame(master=window)
+top_panel = ttk.Frame(master=window)
+bottom_panel = ttk.Frame(master=window)
 
 # Title + Intro Frame
-intro_frame = ttk.Frame(master=left_panel)
+intro_frame = ttk.Frame(master=top_panel, bootstyle="success")
 title_label = ttk.Label(master=intro_frame, text="Tracking Mouse", font="Calibri 24 bold")
 intro_label = ttk.Label(master=intro_frame, text="Welcome to Tracking Mouse, a hands-free \ncomputer mouse built for your convenience!")
 
-title_label.pack()
-intro_label.pack()
+title_label.pack(pady=10)
+intro_label.pack(pady=10)
 
-intro_frame.pack(padx=10, pady=10)
+intro_frame.pack(side="left", padx=20)
 
 
 # Program status
-status_frame = ttk.Frame(master=left_panel)
+status_frame = ttk.Frame(master=bottom_panel, bootstyle="secondary")
 status_title_label = ttk.Label(master=status_frame, text="App Status:", font="Calibri 24 bold")
 
+start_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 start_toggle_bool = ttk.BooleanVar()
 start_toggle_button = ttk.Checkbutton(
-							master=status_frame, 
+							master=start_toggle_frame, 
 							bootstyle="success-round-toggle", 
 							command=on_toggle, 
 							variable=start_toggle_bool
 							)
 start_string = ttk.StringVar()
-start_label = ttk.Label(master=status_frame, textvariable=start_string)
+start_label = ttk.Label(master=start_toggle_frame, textvariable=start_string)
 start_string.set("Start tracking")
 
+headband_toggle_frame = ttk.Frame(master=status_frame, bootstyle="dark")
 headband_toggle_bool = ttk.BooleanVar()
 headband_checkbox = ttk.Checkbutton(
-							master=status_frame, 
+							master=headband_toggle_frame, 
 							bootstyle="success", 
 							variable=headband_toggle_bool,
 							state="disabled"
 							)
 headband_string = ttk.StringVar()
-headband_label = ttk.Label(master=status_frame, textvariable=headband_string)
+headband_label = ttk.Label(master=headband_toggle_frame, textvariable=headband_string)
 headband_string.set("Headband not connected")
 
+camera_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 camera_toggle_bool = ttk.BooleanVar()
 camera_checkbox = ttk.Checkbutton(
-							master=status_frame, 
+							master=camera_toggle_frame, 
 							bootstyle="success",
 							variable=camera_toggle_bool,
 							state="disabled"
 							)
 camera_string = ttk.StringVar()
-camera_label = ttk.Label(master=status_frame, textvariable=camera_string)
+camera_label = ttk.Label(master=camera_toggle_frame, textvariable=camera_string)
 camera_string.set("Camera not connected")
 
 # Pack everything lol
-status_title_label.pack()
+status_title_label.pack(pady=10)
 
-start_toggle_button.pack()
-start_label.pack()
 
-headband_checkbox.pack()
-headband_label.pack()
+start_toggle_button.pack(side="left", pady=10)
+start_label.pack(side="right", pady=5)
+start_toggle_frame.pack(pady=10)
 
-camera_checkbox.pack()
-camera_label.pack()
+headband_checkbox.pack(side="left", pady=10)
+headband_label.pack(side="right", pady=5)
+headband_toggle_frame.pack(pady=10)
 
-status_frame.pack(padx=10, pady=10)
+camera_checkbox.pack(side="left", pady=10)
+camera_label.pack(side="right", pady=5)
+camera_toggle_frame.pack(pady=10)
+
+status_frame.pack(side="left", padx=20)
 
 
 # Key - table of cursor action and user input
-key_frame = ttk.Frame(master=right_panel)
+key_frame = ttk.Frame(master=top_panel, bootstyle="info")
 key_title_label =  ttk.Label(master=key_frame, text="Inputs", font="Calibri 24 bold")
 coldata = [
 	{"text": "Cursor Action", "stretch": False},
@@ -346,14 +353,14 @@ key_dt = Tableview(
 	stripecolor=(colors.light, None),
 )
 
-key_title_label.pack()
-key_dt.pack(fill=BOTH, expand=YES, padx=10, pady=10)
+key_title_label.pack(pady=10)
+key_dt.pack(fill=BOTH, expand=NO)
 
-key_frame.pack(side="top")
+key_frame.pack(padx=20)
 
 
 # Video Feed
-video_frame = ttk.Frame(master=right_panel)
+video_frame = ttk.Frame(master=bottom_panel, bootstyle="warning")
 video_label = ttk.Label(master=video_frame)
 
 camera_off_img = Image.open("camera-off.png").resize((640,480))
@@ -362,12 +369,12 @@ img = ImageTk.PhotoImage(image=camera_off_img, size="640x480")
 # Update the image in label
 video_label.imgtk = img  # Prevent garbage collection
 video_label.config(image=img)
-print(f"Image size: {video_label.imgtk.width()}x{video_label.imgtk.height()}")
+# print(f"Image size: {video_label.imgtk.width()}x{video_label.imgtk.height()}")
 
-video_label.pack()
-video_frame.pack(padx=10, pady=10)
+video_label.pack(pady=10)
+video_frame.pack(padx=20)
 
 # Run
-left_panel.pack(side="left", expand=True, fill=BOTH)
-right_panel.pack(side="right", expand=True, fill=BOTH)
+top_panel.pack(side="top", pady=10, expand=True, fill=BOTH)
+bottom_panel.pack(side="bottom", pady=10, expand=True, fill=BOTH)
 window.mainloop()

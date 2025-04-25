@@ -2,6 +2,7 @@
 # https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/
 # https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
 # https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
+# https://stackoverflow.com/questions/51131812/wrap-text-inside-row-in-tkinter-treeview
 
 # Media credits:
 # [1] ChatRat Image (window icon) - https://logopond.com/SKitanovic/showcase/detail/276227
@@ -18,6 +19,7 @@ from ttkbootstrap.tableview import Tableview
 from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.constants import *
 from PIL import Image, ImageTk
+import textwrap
 
 # Backend Imports
 import cv2 # for video rendering 
@@ -214,6 +216,10 @@ def reset_tracking_state():
 	
 ################################# GUI #################################
 # GUI Functions
+# Wrapping text in widgets
+def wrap(string, length=30):
+    return "\n".join(textwrap.wrap(string, length))
+
 # For turning the blink tracking program on/off
 def on_toggle():
 	if (start_toggle_bool.get()): # if toggle is on
@@ -258,7 +264,7 @@ def on_toggle():
 # Window
 window = ttk.Window(themename="yeti", iconphoto="lab_rats_logo.png")
 window.title("Tracking Mouse")
-window.geometry("1250x700")
+window.geometry("1000x900")
 colors = window.style.colors
 
 # Left & Right Panels (Frames)
@@ -268,12 +274,12 @@ bottom_panel = ttk.Frame(master=window)
 # Title + Intro Frame
 intro_frame = ttk.Frame(master=top_panel, bootstyle="success")
 title_label = ttk.Label(master=intro_frame, font="Calibri 25 bold", text="Tracking Mouse")
-intro_label = ttk.Label(master=intro_frame, font="Calibri 15", text="Welcome to Tracking Mouse, a hands-free \ncomputer mouse built for your convenience!")
+intro_label = ttk.Label(master=intro_frame, font="Calibri 15", text=wrap("Welcome to Tracking Mouse, a hands-free computer mouse built for your convenience!"))
 
-title_label.pack(pady=10)
+title_label.pack(side="top", pady=10)
 intro_label.pack(pady=10)
 
-intro_frame.pack(side="left", padx=20)
+intro_frame.pack(side="left", padx=20, fill=BOTH, expand=True)
 
 
 # Program status
@@ -321,7 +327,7 @@ last_click.set("Last click: N/A")
 last_click_label = ttk.Label(master=status_frame, font="Calibri 15 bold", textvariable=last_click)
 
 # Pack everything lol
-status_title_label.pack(pady=10)
+status_title_label.pack(side="top", pady=10)
 
 start_toggle_button.pack(side="left", pady=10)
 start_label.pack(side="right", pady=5)
@@ -337,7 +343,7 @@ camera_toggle_frame.pack(pady=10)
 
 last_click_label.pack(pady=10)
 
-status_frame.pack(side="left", padx=20)
+status_frame.pack(side="left", padx=20, fill=BOTH, expand=True)
 
 
 # Key - table of cursor action and user input
@@ -347,7 +353,7 @@ key_title_label =  ttk.Label(master=key_frame, text="Inputs", font="Calibri 25 b
 # Unique style for datatables to change font size
 key_dt_style = ttk.Style()
 key_dt_style.theme_use("yeti")  # Re-apply theme explicitly
-key_dt_style.configure("Treeview", font=("Calibri", 15), rowheight=100)  # Entries
+key_dt_style.configure("Treeview", font=("Calibri", 15), rowheight=70)  # Entries
 key_dt_style.configure("Treeview.Heading", font=("Calibri", 15, "bold"))  # Header
 
 coldata = [
@@ -356,43 +362,34 @@ coldata = [
 ]
 
 rowdata = [
-	("Move cursor in any direction", "Wear headband and move head in desired direction"),
+	("Move cursor\n(any direction)", "Wear headband and move\nhead in desired direction"),
 	("Left click", "1 long blink"),
 	("Right click", "2 long blinks")
 ]
 
 
-
-# key_dt = ttk.Treeview(
-# 	master=key_frame,
-# 	columns=coldata,
-# 	show="headings",
-# 	height=3,
-# 	style=
-# )
-
-# key_dt.heading(column=0, text="Cursor Action")
-# key_dt.heading(column=1, text="User Input")
-
-# for entry in rowdata:
-# 	key_dt.insert("", "end", values=(entry[0], entry[1]))
-
-
-
-key_dt = Tableview(
+key_dt = ttk.Treeview(
 	master=key_frame,
-	coldata=coldata,
-	rowdata=rowdata,
-	autofit=True,
+	columns=coldata,
+	show="headings",
 	height=3,
-	searchable=False, # search entries
-	paginated=False, # next page
-	bootstyle=PRIMARY,
-	stripecolor=(colors.light, None),
 )
 
+key_dt.heading(column=0, text="Cursor Action")
+key_dt.heading(column=1, text="User Input")
+
+key_dt.column(0, width=200, stretch=True)
+key_dt.column(1, width=350, stretch=True)
+
+for entry in rowdata:
+	# height = 40 # default row height
+	# if (i==1): # only for the really long first row
+	# 	height=70
+	key_dt.insert("", "end", values=(entry[0], entry[1]))
+
+
 key_title_label.pack(pady=10)
-key_dt.pack(pady=10, fill=BOTH, expand=TRUE)
+key_dt.pack(ipadx=5, pady=10, fill=BOTH, expand=TRUE)
 key_frame.pack(padx=20)
 
 
@@ -409,7 +406,7 @@ video_label.config(image=img)
 # print(f"Image size: {video_label.imgtk.width()}x{video_label.imgtk.height()}")
 
 video_label.pack(pady=10)
-video_frame.pack(padx=20)
+video_frame.pack(padx=20, fill=BOTH, expand=True)
 
 # Run
 top_panel.pack(side="top", pady=10, expand=True, fill=BOTH)

@@ -268,22 +268,22 @@ window.geometry("1000x900")
 colors = window.style.colors
 
 # Left & Right Panels (Frames)
-top_panel = ttk.Frame(master=window)
-bottom_panel = ttk.Frame(master=window)
+left_panel = ttk.Frame(master=window)
+right_panel = ttk.Frame(master=window)
 
 # Title + Intro Frame
-intro_frame = ttk.Frame(master=top_panel, bootstyle="success")
+intro_frame = ttk.Frame(master=left_panel, bootstyle="success")
 title_label = ttk.Label(master=intro_frame, font="Calibri 25 bold", text="Tracking Mouse")
 intro_label = ttk.Label(master=intro_frame, font="Calibri 15", text=wrap("Welcome to Tracking Mouse, a hands-free computer mouse built for your convenience!"))
 
-title_label.pack(side="top", pady=10)
+title_label.pack(pady=10)
 intro_label.pack(pady=10)
 
-intro_frame.pack(side="left", padx=20, fill=BOTH, expand=True)
+intro_frame.pack(side="top", pady=20, fill=BOTH, expand=True)
 
 
 # Program status
-status_frame = ttk.Frame(master=bottom_panel, bootstyle="secondary")
+status_frame = ttk.Frame(master=left_panel, bootstyle="secondary")
 status_title_label = ttk.Label(master=status_frame, font="Calibri 25 bold", text="App Status:")
 
 start_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
@@ -343,18 +343,24 @@ camera_toggle_frame.pack(pady=10)
 
 last_click_label.pack(pady=10)
 
-status_frame.pack(side="left", padx=20, fill=BOTH, expand=True)
+status_frame.pack(side="bottom", pady=20, fill=BOTH, expand=True)
 
 
 # Key - table of cursor action and user input
-key_frame = ttk.Frame(master=top_panel, bootstyle="info")
+key_frame = ttk.Frame(master=right_panel, bootstyle="info")
 key_title_label =  ttk.Label(master=key_frame, text="Inputs", font="Calibri 25 bold")
 
 # Unique style for datatables to change font size
 key_dt_style = ttk.Style()
+colors = key_dt_style.colors
 key_dt_style.theme_use("yeti")  # Re-apply theme explicitly
 key_dt_style.configure("Treeview", font=("Calibri", 15), rowheight=70)  # Entries
-key_dt_style.configure("Treeview.Heading", font=("Calibri", 15, "bold"))  # Header
+key_dt_style.configure(
+						"Treeview.Heading", 
+						font=("Calibri", 15, "bold"),
+						background=colors.primary,
+						foreground="white"
+						)  # Header
 
 coldata = [
 	{"text": "Cursor Action", "stretch": False},
@@ -381,20 +387,23 @@ key_dt.heading(column=1, text="User Input")
 key_dt.column(0, width=200, stretch=True)
 key_dt.column(1, width=350, stretch=True)
 
-for entry in rowdata:
-	# height = 40 # default row height
-	# if (i==1): # only for the really long first row
-	# 	height=70
-	key_dt.insert("", "end", values=(entry[0], entry[1]))
+for i in range(len(rowdata)):
+	if (i%2==1):
+		key_dt.insert("", "end", values=(rowdata[i][0], rowdata[i][1]), tags=("blue",)) # blue row for odd
+	else:
+		key_dt.insert("", "end", values=(rowdata[i][0], rowdata[i][1])) # white row for even
 
+
+# Configure tags
+key_dt.tag_configure("blue", background=colors.info, foreground="white")
 
 key_title_label.pack(pady=10)
 key_dt.pack(ipadx=5, pady=10, fill=BOTH, expand=TRUE)
-key_frame.pack(padx=20)
+key_frame.pack(pady=20, fill=BOTH, expand=True)
 
 
 # Video Feed
-video_frame = ttk.Frame(master=bottom_panel, bootstyle="warning")
+video_frame = ttk.Frame(master=right_panel, bootstyle="warning")
 video_label = ttk.Label(master=video_frame)
 
 camera_off_img = Image.open("camera-off.png").resize((640,480))
@@ -406,9 +415,9 @@ video_label.config(image=img)
 # print(f"Image size: {video_label.imgtk.width()}x{video_label.imgtk.height()}")
 
 video_label.pack(pady=10)
-video_frame.pack(padx=20, fill=BOTH, expand=True)
+video_frame.pack(pady=20, fill=BOTH, expand=True)
 
 # Run
-top_panel.pack(side="top", pady=10, expand=True, fill=BOTH)
-bottom_panel.pack(side="bottom", pady=10, expand=True, fill=BOTH)
+left_panel.pack(side="left", padx=20, expand=True, fill=BOTH)
+right_panel.pack(side="right", padx=20, expand=True, fill=BOTH)
 window.mainloop()

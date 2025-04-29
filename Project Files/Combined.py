@@ -227,8 +227,8 @@ def on_toggle():
 		toast = ToastNotification(
 			title="Tracking Mouse",
 			message="Tracking has been turned ON.",
-			duration=3000,
-			bootstyle="info"
+			duration=5000,
+			bootstyle="dark"
 		)
 
 		toast.show_toast()
@@ -240,8 +240,8 @@ def on_toggle():
 		toast = ToastNotification(
 			title="Tracking Mouse",
 			message="Tracking has been turned OFF.",
-			duration=3000,
-			bootstyle="info"
+			duration=5000,
+			bootstyle="dark"
 		)
 
 		headband_toggle_bool.set(False)
@@ -262,7 +262,7 @@ def on_toggle():
 
 # Elements
 # Window
-window = ttk.Window(themename="yeti", iconphoto="lab_rats_logo.png")
+window = ttk.Window(themename="united", iconphoto="lab_rats_logo.png")
 window.title("Tracking Mouse")
 window.geometry("1000x900")
 colors = window.style.colors
@@ -272,59 +272,69 @@ left_panel = ttk.Frame(master=window)
 right_panel = ttk.Frame(master=window)
 
 # Title + Intro Frame
-intro_frame = ttk.Frame(master=left_panel, bootstyle="success")
-title_label = ttk.Label(master=intro_frame, font="Calibri 25 bold", text="Tracking Mouse")
-intro_label = ttk.Label(master=intro_frame, font="Calibri 15", text=wrap("Welcome to Tracking Mouse, a hands-free computer mouse built for your convenience!"))
+intro_frame = ttk.Frame(master=left_panel, bootstyle="dark")
+intro_frame_style = ttk.Style()
+colors = intro_frame_style.colors
+title_label = ttk.Label(master=intro_frame, background=colors.dark, foreground=colors.light, font="Calibri 25 bold", text="Tracking Mouse")
+intro_label = ttk.Label(master=intro_frame,  background=colors.dark, foreground=colors.light, font="Calibri 15", text="Welcome to Tracking Mouse,\na hands-free computer mouse\nbuilt for your convenience!")
 
-title_label.pack(pady=10)
-intro_label.pack(pady=10)
+title_label.pack(padx=10, pady=10)
+intro_label.pack(padx=10, pady=10)
 
 intro_frame.pack(side="top", pady=20, fill=BOTH, expand=True)
 
 
 # Program status
-status_frame = ttk.Frame(master=left_panel, bootstyle="secondary")
-status_title_label = ttk.Label(master=status_frame, font="Calibri 25 bold", text="App Status:")
+status_frame_style = ttk.Style()
+colors = status_frame_style.colors
+status_frame = ttk.Frame(master=left_panel, bootstyle="light")
+status_title_label = ttk.Label(
+							master=status_frame,
+							background=colors.light,
+							foreground=colors.dark,
+							font="Calibri 25 bold", 
+							text="App Status:"
+							)
 
 start_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 start_toggle_bool = ttk.BooleanVar()
 start_toggle_button = ttk.Checkbutton(
 							master=start_toggle_frame, 
-							bootstyle="success-round-toggle", 
+							bootstyle="dark-round-toggle", 
 							command=on_toggle, 
 							variable=start_toggle_bool
 							)
 start_string = ttk.StringVar()
-start_label = ttk.Label(master=start_toggle_frame, font="Calibri 15", textvariable=start_string)
+start_label = ttk.Label(master=start_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=start_string)
 start_string.set("Start tracking")
 
-headband_toggle_frame = ttk.Frame(master=status_frame, bootstyle="dark")
+headband_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 headband_toggle_bool = ttk.BooleanVar()
 headband_checkbox = ttk.Checkbutton(
 							master=headband_toggle_frame, 
-							bootstyle="success", 
+							bootstyle="dark", 
 							variable=headband_toggle_bool,
 							state="disabled"
 							)
 headband_string = ttk.StringVar()
-headband_label = ttk.Label(master=headband_toggle_frame, font="Calibri 15", textvariable=headband_string)
+headband_label = ttk.Label(master=headband_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=headband_string)
 headband_string.set("Headband not connected")
 
 camera_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 camera_toggle_bool = ttk.BooleanVar()
 camera_checkbox = ttk.Checkbutton(
 							master=camera_toggle_frame, 
-							bootstyle="success",
+							bootstyle="dark",
 							variable=camera_toggle_bool,
 							state="disabled"
 							)
 camera_string = ttk.StringVar()
-camera_label = ttk.Label(master=camera_toggle_frame, font="Calibri 15", textvariable=camera_string)
+camera_label = ttk.Label(master=camera_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=camera_string)
 camera_string.set("Camera not connected")
 
 last_click = ttk.StringVar()
 last_click.set("Last click: N/A")
-last_click_label = ttk.Label(master=status_frame, font="Calibri 15 bold", textvariable=last_click)
+last_click_label = ttk.Label(master=status_frame, background=colors.light, foreground=colors.dark, font="Calibri 15 bold", textvariable=last_click)
 
 # Pack everything lol
 status_title_label.pack(side="top", pady=10)
@@ -347,19 +357,21 @@ status_frame.pack(side="bottom", pady=20, fill=BOTH, expand=True)
 
 
 # Key - table of cursor action and user input
-key_frame = ttk.Frame(master=right_panel, bootstyle="info")
-key_title_label =  ttk.Label(master=key_frame, text="Inputs", font="Calibri 25 bold")
-
 # Unique style for datatables to change font size
 key_dt_style = ttk.Style()
 colors = key_dt_style.colors
-key_dt_style.theme_use("yeti")  # Re-apply theme explicitly
+
+key_frame = ttk.Frame(master=right_panel, bootstyle="light")
+key_title_label =  ttk.Label(master=key_frame, background=colors.light, foreground=colors.dark, text="Inputs", font="Calibri 25 bold")
+
+
+key_dt_style.theme_use("united")  # Re-apply theme explicitly
 key_dt_style.configure("Treeview", font=("Calibri", 15), rowheight=70)  # Entries
 key_dt_style.configure(
 						"Treeview.Heading", 
 						font=("Calibri", 15, "bold"),
-						background=colors.primary,
-						foreground="white"
+						background=colors.dark,
+						foreground="white",
 						)  # Header
 
 coldata = [
@@ -389,13 +401,14 @@ key_dt.column(1, width=350, stretch=True)
 
 for i in range(len(rowdata)):
 	if (i%2==1):
-		key_dt.insert("", "end", values=(rowdata[i][0], rowdata[i][1]), tags=("blue",)) # blue row for odd
+		key_dt.insert("", "end", values=(rowdata[i][0], rowdata[i][1]), tags=("odd",)) # colored row for odd
 	else:
-		key_dt.insert("", "end", values=(rowdata[i][0], rowdata[i][1])) # white row for even
+		key_dt.insert("", "end", values=(rowdata[i][0], rowdata[i][1]), tags=("even",)) # white row for even
 
 
 # Configure tags
-key_dt.tag_configure("blue", background=colors.info, foreground="white")
+key_dt.tag_configure("odd", background=colors.light, foreground="black")
+key_dt.tag_configure("even", foreground="black")
 
 key_title_label.pack(pady=10)
 key_dt.pack(ipadx=5, pady=10, fill=BOTH, expand=TRUE)
@@ -403,8 +416,8 @@ key_frame.pack(pady=20, fill=BOTH, expand=True)
 
 
 # Video Feed
-video_frame = ttk.Frame(master=right_panel, bootstyle="warning")
-video_label = ttk.Label(master=video_frame)
+video_frame = ttk.Frame(master=right_panel, bootstyle="dark")
+video_label = ttk.Label(master=video_frame, bootstyle="dark")
 
 camera_off_img = Image.open("camera-off.png").resize((640,480))
 img = ImageTk.PhotoImage(image=camera_off_img)
@@ -414,10 +427,10 @@ video_label.imgtk = img  # Prevent garbage collection
 video_label.config(image=img)
 # print(f"Image size: {video_label.imgtk.width()}x{video_label.imgtk.height()}")
 
-video_label.pack(pady=10)
+video_label.pack(padx=10, pady=10)
 video_frame.pack(pady=20, fill=BOTH, expand=True)
 
 # Run
-left_panel.pack(side="left", padx=20, expand=True, fill=BOTH)
-right_panel.pack(side="right", padx=20, expand=True, fill=BOTH)
+left_panel.pack(side="left", padx=10, expand=True, fill=BOTH)
+right_panel.pack(side="right", padx=10, expand=True, fill=BOTH)
 window.mainloop()

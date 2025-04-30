@@ -2,7 +2,6 @@
 # https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/
 # https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
 # https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
-# https://stackoverflow.com/questions/51131812/wrap-text-inside-row-in-tkinter-treeview
 
 # Media credits:
 # [1] ChatRat Image (window icon) - https://logopond.com/SKitanovic/showcase/detail/276227
@@ -19,7 +18,7 @@ from ttkbootstrap.tableview import Tableview
 from ttkbootstrap.toast import ToastNotification
 from ttkbootstrap.constants import *
 from PIL import Image, ImageTk
-import textwrap
+from tkinter import PhotoImage
 
 # Backend Imports
 import cv2 # for video rendering 
@@ -104,6 +103,10 @@ def tracking():
 	print("Camera opened! :D")
 	camera_toggle_bool.set(True)
 	camera_string.set("Camera connected")
+
+	camera_checkbox.state(['disabled'])
+	camera_checkbox.configure(style="Clicked.TCheckbutton")
+	
 
 	(L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
 	(R_start, R_end) = face_utils.FACIAL_LANDMARKS_IDXS['right_eye']
@@ -216,10 +219,6 @@ def reset_tracking_state():
 	
 ################################# GUI #################################
 # GUI Functions
-# Wrapping text in widgets
-def wrap(string, length=30):
-    return "\n".join(textwrap.wrap(string, length))
-
 # For turning the blink tracking program on/off
 def on_toggle():
 	if (start_toggle_bool.get()): # if toggle is on
@@ -244,8 +243,6 @@ def on_toggle():
 			bootstyle="dark"
 		)
 
-		headband_toggle_bool.set(False)
-		headband_string.set("Headband not connected")
 		camera_toggle_bool.set(False)
 		camera_string.set("Camera not connected.")
 
@@ -262,32 +259,47 @@ def on_toggle():
 
 # Elements
 # Window
-window = ttk.Window(themename="united", iconphoto="lab_rats_logo.png")
+window = ttk.Window(themename="united", iconphoto="lab_rats_logo_white.png")
+
 window.title("Tracking Mouse")
 window.geometry("1000x900")
+
 colors = window.style.colors
+
 
 # Left & Right Panels (Frames)
 left_panel = ttk.Frame(master=window)
 right_panel = ttk.Frame(master=window)
 
+
 # Title + Intro Frame
 intro_frame = ttk.Frame(master=left_panel, bootstyle="dark")
 intro_frame_style = ttk.Style()
 colors = intro_frame_style.colors
+
 title_label = ttk.Label(master=intro_frame, background=colors.dark, foreground=colors.light, font="Calibri 25 bold", text="Tracking Mouse")
 intro_label = ttk.Label(master=intro_frame,  background=colors.dark, foreground=colors.light, font="Calibri 15", text="Welcome to Tracking Mouse,\na hands-free computer mouse\nbuilt for your convenience!")
+logo_label = ttk.Label(master=intro_frame, background=colors.dark)
+
+logo_img = Image.open("lab_rats_logo_white.png").resize((100,100))
+img = ImageTk.PhotoImage(image=logo_img)
+logo_label.imgtk = img  # Prevent garbage collection
+logo_label.config(image=img)
+
+# print(f"Image size: {logo_label.imgtk.width()}x{logo_label.imgtk.height()}")
 
 title_label.pack(padx=10, pady=10)
 intro_label.pack(padx=10, pady=10)
+logo_label.pack(padx=10, pady=10)
 
 intro_frame.pack(side="top", pady=20, fill=BOTH, expand=True)
 
 
 # Program status
+status_frame = ttk.Frame(master=left_panel, bootstyle="light")
 status_frame_style = ttk.Style()
 colors = status_frame_style.colors
-status_frame = ttk.Frame(master=left_panel, bootstyle="light")
+
 status_title_label = ttk.Label(
 							master=status_frame,
 							background=colors.light,
@@ -308,18 +320,6 @@ start_string = ttk.StringVar()
 start_label = ttk.Label(master=start_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=start_string)
 start_string.set("Start tracking")
 
-headband_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
-headband_toggle_bool = ttk.BooleanVar()
-headband_checkbox = ttk.Checkbutton(
-							master=headband_toggle_frame, 
-							bootstyle="dark", 
-							variable=headband_toggle_bool,
-							state="disabled"
-							)
-headband_string = ttk.StringVar()
-headband_label = ttk.Label(master=headband_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=headband_string)
-headband_string.set("Headband not connected")
-
 camera_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 camera_toggle_bool = ttk.BooleanVar()
 camera_checkbox = ttk.Checkbutton(
@@ -332,6 +332,17 @@ camera_string = ttk.StringVar()
 camera_label = ttk.Label(master=camera_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=camera_string)
 camera_string.set("Camera not connected")
 
+# Define a special style for the disabled state
+status_frame_style.configure("Clicked.TCheckbutton")
+status_frame_style.map("Clicked.TCheckbutton",
+          foreground=[('disabled', colors.dark)],  # custom disabled color
+          background=[('disabled', colors.dark)])
+
+headband_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
+headband_string = ttk.StringVar()
+headband_label = ttk.Label(master=headband_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=headband_string)
+headband_string.set("Please ensure the\nheadband is turned on\nand connected to your\ncomputer to move your cursor.")
+
 last_click = ttk.StringVar()
 last_click.set("Last click: N/A")
 last_click_label = ttk.Label(master=status_frame, background=colors.light, foreground=colors.dark, font="Calibri 15 bold", textvariable=last_click)
@@ -339,19 +350,18 @@ last_click_label = ttk.Label(master=status_frame, background=colors.light, foreg
 # Pack everything lol
 status_title_label.pack(side="top", pady=10)
 
-start_toggle_button.pack(side="left", pady=10)
-start_label.pack(side="right", pady=5)
-start_toggle_frame.pack(pady=10)
+start_toggle_button.pack(side="left", padx=10)
+start_label.pack(side="left", padx=10)
+start_toggle_frame.pack(pady=10, fill=X)
 
-headband_checkbox.pack(side="left", pady=10)
-headband_label.pack(side="right", pady=5)
-headband_toggle_frame.pack(pady=10)
+camera_checkbox.pack(side="left", padx=10)
+camera_label.pack(side="left", padx=10)
+camera_toggle_frame.pack(pady=10, fill=X)
 
-camera_checkbox.pack(side="left", pady=10)
-camera_label.pack(side="right", pady=5)
-camera_toggle_frame.pack(pady=10)
+headband_label.pack(side="left", padx=10)
+headband_toggle_frame.pack(pady=20)
 
-last_click_label.pack(pady=10)
+last_click_label.pack(pady=20)
 
 status_frame.pack(side="bottom", pady=20, fill=BOTH, expand=True)
 
@@ -429,6 +439,7 @@ video_label.config(image=img)
 
 video_label.pack(padx=10, pady=10)
 video_frame.pack(pady=20, fill=BOTH, expand=True)
+
 
 # Run
 left_panel.pack(side="left", padx=10, expand=True, fill=BOTH)

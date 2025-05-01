@@ -1,7 +1,7 @@
 # DOCS:
-# https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/
-# https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
-# https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
+# [1] TTKBootstrap (GUI) - https://ttkbootstrap.readthedocs.io/en/latest/gettingstarted/tutorial/
+# [2] Eye Blink Detection Code - https://www.geeksforgeeks.org/eye-blink-detection-with-opencv-python-and-dlib/
+# [3] Nearest Face Detection - https://stackoverflow.com/questions/56294517/select-one-face-detector-from-multiple-faces-in-image
 
 # Media credits:
 # [1] ChatRat Image (window icon) - https://logopond.com/SKitanovic/showcase/detail/276227
@@ -22,7 +22,6 @@ from tkinter import PhotoImage
 
 # Backend Imports
 import cv2 # for video rendering 
-# import numpy as np
 import dlib # for face and landmark detection 
 import imutils 
 from scipy.spatial import distance as dist # for calculating dist b/w the eye landmarks  
@@ -30,6 +29,7 @@ from imutils import face_utils # to get the landmark ids of the left and right e
 import pyautogui # mouse control
 import numpy as np # for sorting array of faces
 import pygame # sound effects
+import os, sys # for packaging & distribution
 
 
 ################################# Global Constants & Variables #################################
@@ -47,13 +47,23 @@ global both_count_frame, long_blink_counter, consecutive_blink_timeout # blink t
 
 
 ################################# BACKEND #################################
+# Backend Functions
+def resource_path(relative_path):
+    """Get absolute path to resource, works for dev and for PyInstaller"""
+    try:
+        base_path = sys._MEIPASS  # PyInstaller creates a temp folder and stores path in _MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+
+    return os.path.join(base_path, relative_path)
+
+
 # Initalize sound 
 pygame.mixer.init()
-click_sound = pygame.mixer.Sound("click_sound_20.mp3")
+click_sound = pygame.mixer.Sound(resource_path("click_sound_20.mp3"))
 click_sound.set_volume(1.0)  # range is 0.0 to 1.0
 
 
-# Backend Functions
 # Calculates the eye aspect ratio (EAR) 
 def calculate_EAR(eye): 
 	# calculate the vertical distances 
@@ -89,7 +99,7 @@ def nearest_face(faces):
 			max_index = i
 	
 	return max_index # return index of nearest face from list of faces
-	
+
 	
 # the actual blink tracking program
 def tracking():
@@ -98,20 +108,24 @@ def tracking():
 	cam = cv2.VideoCapture(0, cv2.CAP_DSHOW)
 	if not cam.isOpened():
 		print("Error: Could not open camera.")
+		ToastNotification(
+			title="Camera Error",
+			message="Could not open the camera. Please check your device.",
+			duration=5000,
+			bootstyle="danger"
+		).show_toast()
 		return
 
 	print("Camera opened! :D")
 	camera_toggle_bool.set(True)
-	camera_string.set("Camera connected")
+	camera_string.set("Camera connected")	
 
-	camera_checkbox.state(['disabled'])
-	camera_checkbox.configure(style="Clicked.TCheckbutton")
-	
-
+	# switched due to mirroring
 	(L_start, L_end) = face_utils.FACIAL_LANDMARKS_IDXS["left_eye"]
 	(R_start, R_end) = face_utils.FACIAL_LANDMARKS_IDXS['right_eye']
+
 	detector = dlib.get_frontal_face_detector()
-	landmark_predict = dlib.shape_predictor('shape_predictor_68_face_landmarks.dat')
+	landmark_predict = dlib.shape_predictor(resource_path('shape_predictor_68_face_landmarks.dat'))
 
 	print("Initialized models for landmark and face detection")
 
@@ -174,18 +188,12 @@ def track_frame():
 			if long_blink_counter == 1:
 				pyautogui.click(button="left")
 				click_sound.play()
-
 				last_click.set("Last click: LEFT click")
-				last_click_label.config(bootstyle="warning")
-
 				print("Left Click")
 			elif long_blink_counter >= 2:
 				pyautogui.click(button="right")
 				click_sound.play()
-
 				last_click.set("Last click: RIGHT click")
-				last_click_label.config(bootstyle="danger")
-
 				print("Right Click")
 
 			long_blink_counter = 0
@@ -246,7 +254,7 @@ def on_toggle():
 		camera_toggle_bool.set(False)
 		camera_string.set("Camera not connected.")
 
-		camera_off_img = Image.open("camera-off.png").resize((640,480))
+		camera_off_img = Image.open(resource_path("camera-off.png")).resize((640,480))
 		img = ImageTk.PhotoImage(image=camera_off_img)
 
 		# Update the image in label
@@ -259,7 +267,7 @@ def on_toggle():
 
 # Elements
 # Window
-window = ttk.Window(themename="united", iconphoto="lab_rats_logo_white.png")
+window = ttk.Window(themename="united", iconphoto=resource_path("lab_rats_logo_white.png"))
 
 window.title("Tracking Mouse")
 window.geometry("1000x900")
@@ -281,7 +289,7 @@ title_label = ttk.Label(master=intro_frame, background=colors.dark, foreground=c
 intro_label = ttk.Label(master=intro_frame,  background=colors.dark, foreground=colors.light, font="Calibri 15", text="Welcome to Tracking Mouse,\na hands-free computer mouse\nbuilt for your convenience!")
 logo_label = ttk.Label(master=intro_frame, background=colors.dark)
 
-logo_img = Image.open("lab_rats_logo_white.png").resize((100,100))
+logo_img = Image.open(resource_path("lab_rats_logo_white.png")).resize((100,100))
 img = ImageTk.PhotoImage(image=logo_img)
 logo_label.imgtk = img  # Prevent garbage collection
 logo_label.config(image=img)
@@ -331,12 +339,6 @@ camera_checkbox = ttk.Checkbutton(
 camera_string = ttk.StringVar()
 camera_label = ttk.Label(master=camera_toggle_frame, background=colors.light, foreground=colors.dark, font="Calibri 15", textvariable=camera_string)
 camera_string.set("Camera not connected")
-
-# Define a special style for the disabled state
-status_frame_style.configure("Clicked.TCheckbutton")
-status_frame_style.map("Clicked.TCheckbutton",
-          foreground=[('disabled', colors.dark)],  # custom disabled color
-          background=[('disabled', colors.dark)])
 
 headband_toggle_frame = ttk.Frame(master=status_frame, bootstyle="light")
 headband_string = ttk.StringVar()
@@ -429,7 +431,7 @@ key_frame.pack(pady=20, fill=BOTH, expand=True)
 video_frame = ttk.Frame(master=right_panel, bootstyle="dark")
 video_label = ttk.Label(master=video_frame, bootstyle="dark")
 
-camera_off_img = Image.open("camera-off.png").resize((640,480))
+camera_off_img = Image.open(resource_path("camera-off.png")).resize((640,480))
 img = ImageTk.PhotoImage(image=camera_off_img)
 
 # Update the image in label
